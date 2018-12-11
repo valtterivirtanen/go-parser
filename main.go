@@ -10,91 +10,90 @@ import (
 var allowedSymbols = []string{"p", "_", "1", "2", "3", "4", "5", "6", "7", "8", "9", "(", ")", "~", "∼", "&", "v", "-", ">", "<"}
 
 func main() {
-	fmt.Println(allowedSymbols)
-
+	//fmt.Println(allowedSymbols)
+	PrintStartScreen()
 	scanner := bufio.NewScanner(os.Stdin)
-	fmt.Println("Give me input:")
+	running := true
 	var userInput string
 	var x bool
-	for scanner.Scan() {
-		userInput = scanner.Text()
-		userInput = removeSpaces(userInput)
-		x = checkUserInput(userInput)
-		if x {
-			break
-		}
-		fmt.Println("Invalid input, please give another one")
-	}
-
-	if err := scanner.Err(); err != nil {
-		fmt.Fprintln(os.Stderr, "reading standard input:", err)
-	}
-
-	//fmt.Printf("Input: %v\n", userInput)
-
 	var input []Token
-	if x {
-		input = TokenizeInput(userInput)
-		fmt.Println(input)
-	}
-	fmt.Println(x)
+	for running {
+		userInput = ""
+		x = false
+		input = []Token{}
 
-	fmt.Println("Would you like to test for tautology? (true/false/yes/no)")
+		fmt.Println("Please input proposition:")
 
-	testForTautology := "false"
-	for scanner.Scan() {
-		testForTautology = scanner.Text()
-		break
-	}
+		for scanner.Scan() {
+			userInput = scanner.Text()
+			userInput = removeSpaces(userInput)
+			x = checkUserInput(userInput)
+			if x {
+				break
+			}
+			fmt.Println("Invalid input. Please ref to instructions and provide another one")
+		}
 
-	if testForTautology == "false" || testForTautology == "no" {
-		fmt.Println("Give truth value (false, true, f, t) for each terminal")
+		if err := scanner.Err(); err != nil {
+			fmt.Fprintln(os.Stderr, "reading standard input:", err)
+		}
 
-		for i := range input {
-			if input[i].tokenType == "TERM" && string(input[i].value[0]) == "p" {
-				fmt.Print(input[i].value, ": ")
-				for scanner.Scan() {
-					newVal := scanner.Text()
-					if len(newVal) == 0 || (newVal != "false" && newVal != "true" && newVal != "f" && newVal != "t") {
-						fmt.Println("Allowed values are 'false'/'true'/'f'/'t'. Please try again.")
-						fmt.Print(input[i].value, ": ")
-					} else {
-						input = replaceAll(string(input[i].value), newVal, input)
-						break
-					}
+		//fmt.Printf("Input: %v\n", userInput)
+
+		if x {
+			input = TokenizeInput(userInput)
+			//fmt.Println(input)
+
+			//fmt.Println(x)
+
+			fmt.Println("Would you like to test for tautology? (y/n)")
+
+			testForTautology := "false"
+			for scanner.Scan() {
+				testForTautology = scanner.Text()
+				if testForTautology == "y" || testForTautology == "n" {
+					break
+				} else {
+					fmt.Println("Invalid input. Allowed values are 'y' and 'n'. Please try again.")
 				}
 			}
-			//fmt.Println(input[i])
-		}
-	}
 
-	if err := scanner.Err(); err != nil {
-		fmt.Fprintln(os.Stderr, "reading standard input:", err)
-	}
+			if err := scanner.Err(); err != nil {
+				fmt.Fprintln(os.Stderr, "reading standard input:", err)
+			}
 
-	if len(input) > 0 {
-		if testForTautology == "true" || testForTautology == "yes" {
-			fmt.Println("Is tautology:", CheckTautology(input))
-			fmt.Println()
-		} else {
-			t := FormTree(input)
+			if len(input) > 0 {
+				if testForTautology == "y" {
+					fmt.Println("Is tautology:", CheckTautology(input))
+					fmt.Println()
+				} else if testForTautology == "n" {
+					input = getPropositionVariables(input)
+					finalResult := ProcessInput(input)
+					fmt.Println("Proposition is", finalResult)
 
-			if t != nil {
-
-				fmt.Println()
-				//PrintTree(t)
-
-				finalResult := Translate(*t)
-				fmt.Println("Proposition is", finalResult)
+				} else {
+					fmt.Println("Invalid input value given for tautology question!")
+				}
 
 			} else {
-				fmt.Println("Error, there's something wrong with the tree", t)
+				fmt.Println("Input length is 0, something's wrong!")
 			}
 		}
 
-	} else {
-		fmt.Println("Input length 0, something's wrong!")
+		fmt.Println("Would you like to keep going / try again? (y/n)")
+		for scanner.Scan() {
+			c := scanner.Text()
+			if c == "y" {
+				break
+			} else if c == "n" {
+				running = false
+				break
+			} else {
+				fmt.Println("Invalid input. Please try again with values 'y' or 'n'")
+			}
+		}
 	}
+	fmt.Println("Have a nice day. See you soon!")
 }
 
 func checkUserInput(input string) bool {
@@ -139,4 +138,29 @@ func replaceAll(old string, new string, all []Token) []Token {
 		}
 	}
 	return all
+}
+
+func getPropositionVariables(input []Token) []Token {
+	fmt.Println("Give truth value (false, true, f, t) for each terminal")
+	scanner := bufio.NewScanner(os.Stdin)
+	for i := range input {
+		if input[i].tokenType == "TERM" && string(input[i].value[0]) == "p" {
+			fmt.Print(input[i].value, ": ")
+			for scanner.Scan() {
+				newVal := scanner.Text()
+				if len(newVal) == 0 || (newVal != "false" && newVal != "true" && newVal != "f" && newVal != "t") {
+					fmt.Println("Allowed values are 'false'/'true'/'f'/'t'. Please try again.")
+					fmt.Print(input[i].value, ": ")
+				} else {
+					input = replaceAll(string(input[i].value), newVal, input)
+					break
+				}
+			}
+		}
+		//fmt.Println(input[i])
+	}
+	if err := scanner.Err(); err != nil {
+		fmt.Fprintln(os.Stderr, "reading standard input:", err)
+	}
+	return input
 }
