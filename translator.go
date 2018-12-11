@@ -54,13 +54,13 @@ func CheckTautology(input []Token) bool {
 
 	}
 
-	result := processInput(input)
+	result := ProcessInput(input)
 
 	newVal = "false"
 	for i := range input {
 		if input[i].tokenType == "TERM" && result {
 			input = replaceAll(string(input[i].value), newVal, input)
-			result = processInput(input)
+			result = ProcessInput(input)
 			break
 		}
 
@@ -69,14 +69,15 @@ func CheckTautology(input []Token) bool {
 	for i := range input {
 		if input[i].tokenType == "TERM" && result {
 			input = replaceAll(string(input[i].value), newVal, input)
-			result = processInput(input)
+			result = ProcessInput(input)
 			break
 		}
 	}
 	return result
 }
 
-func processInput(input []Token) bool {
+// ProcessInput takes token sequence, forms tree, translates it and returns boolean
+func ProcessInput(input []Token) bool {
 	t := FormTree(input)
 	finalResult := false
 	if t != nil {
@@ -87,7 +88,7 @@ func processInput(input []Token) bool {
 		finalResult = Translate(*t)
 
 	} else {
-		fmt.Println("Tree is nil!")
+		fmt.Println("There's something wrong with the tree", t)
 	}
 	return finalResult
 }
