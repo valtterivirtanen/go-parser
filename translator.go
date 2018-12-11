@@ -8,6 +8,7 @@ import (
 // Translate takes tree, determines it's value(boolean), and returns it
 func Translate(t Tree) bool {
 
+	// Go through the tree recursively
 	switch t.value.tokenType {
 	case "TERM":
 		s, err := strconv.ParseBool(t.value.value)
@@ -45,6 +46,7 @@ func areEqual(a bool, b bool) bool {
 
 // CheckTautology taken tokenized user input and return whether it's tautology or not
 func CheckTautology(input []Token) bool {
+	// Change all proposition variables true
 	newVal := "true"
 	for i := range input {
 		if input[i].tokenType == "TERM" {
@@ -54,8 +56,11 @@ func CheckTautology(input []Token) bool {
 
 	}
 
+	// Form tree and determine it's(proposition's) final truth value
 	result := ProcessInput(input)
 
+	// Change all proposition values from true to false one by one
+	// from start to end and process the input in each step
 	newVal = "false"
 	for i := range input {
 		if input[i].tokenType == "TERM" && result {
@@ -65,6 +70,9 @@ func CheckTautology(input []Token) bool {
 		}
 
 	}
+
+	// Change all proposition values from false to true one by one
+	// and process the input in each step
 	newVal = "true"
 	for i := range input {
 		if input[i].tokenType == "TERM" && result {
@@ -81,12 +89,7 @@ func ProcessInput(input []Token) bool {
 	t := FormTree(input)
 	finalResult := false
 	if t != nil {
-
-		fmt.Println()
-		//PrintTree(t)
-
 		finalResult = Translate(*t)
-
 	} else {
 		fmt.Println("There's something wrong with the tree", t)
 	}

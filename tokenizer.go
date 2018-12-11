@@ -5,7 +5,7 @@ import (
 	"regexp"
 )
 
-// Token is an object which has type and value properties
+// Token is an object(struct) which has type and value properties
 type Token struct {
 	tokenType string
 	value     string
@@ -16,10 +16,13 @@ func TokenizeInput(input string) []Token {
 	// Let's ensure that every left parenthesis has right pair
 	parenthesis := 0
 	var tokens []Token
+	// E refers to the end of input, last char
 	input += "E"
 	for input != "" {
 		i := 0
 
+		// Go through all input characters from start to end and drop them
+		// until the input string is empty
 		switch string(input[i]) {
 		case "(":
 			// If there are parenthesis the first one has to be "("
@@ -89,7 +92,7 @@ func TokenizeInput(input string) []Token {
 			input = input[1:]
 			break
 		default:
-			fmt.Println("Unidentified symbol in user input", string(input[0]))
+			fmt.Println("Unidentified symbol in user input:", string(input[0]))
 			return nil
 		}
 	}

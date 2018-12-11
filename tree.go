@@ -10,21 +10,14 @@ type Tree struct {
 	left, right *Tree
 }
 
-// FormTree forms parse tree (/concrete syntax tree/derivation tree) from given tokens
+// FormTree forms parse tree (/concrete syntax tree/derivation tree) from given tokens.
 func FormTree(tokens []Token) *Tree {
-	//fmt.Println(tokens)
-
+	// Skip nil branches/empty trees
 	if len(tokens) == 0 {
 		return nil
 	}
-	/*
-		if tokens[0].tokenType == "RPAR" && (tokens[1].tokenType == "TERM" || tokens[1].tokenType == "NEG") {
-			t := Tree{}
-			t.value = tokens
-			t.left = FormTree(tokens[0:lparInd])
-			t.right = FormTree(tokens[lparInd:])
-		}*/
 
+	// Count "("
 	lparInd := 0
 	for index, value := range tokens {
 		if value.tokenType == "LPAR" {
@@ -32,7 +25,6 @@ func FormTree(tokens []Token) *Tree {
 			break
 		}
 	}
-	//fmt.Println(lparInd)
 
 	if lparInd > 1 {
 		t := Tree{}
@@ -44,6 +36,7 @@ func FormTree(tokens []Token) *Tree {
 		}
 
 		t.value = tokens[lparInd-i]
+		// Call recursively this function to form subtrees
 		t.left = FormTree(tokens[0 : lparInd-i])
 		t.right = FormTree(tokens[lparInd-i+1:])
 
@@ -58,6 +51,7 @@ func FormTree(tokens []Token) *Tree {
 	if tokens[lparInd].tokenType == "LPAR" {
 		countPars := 0
 		rparInd := 0
+		// Ensure that each parenthesis has pair
 		for ind, val := range tokens {
 			if val.tokenType == "LPAR" {
 				countPars++
@@ -88,22 +82,20 @@ func FormTree(tokens []Token) *Tree {
 		return &t
 	}
 
+	// Handle negation when encountered
 	if tokens[0].tokenType == "NEG" {
+		// There's always a terminal in proposition
 		if len(tokens) < 2 {
 			fmt.Println("There's something wrong within this token sequence:", tokens)
 			return nil
 		}
+		// Negation has to be followed by terminal, parenthesis or another negation
 		if tokens[1].tokenType != "TERM" && tokens[1].tokenType != "LPAR" && tokens[1].tokenType != "NEG" {
 			fmt.Println("There's something wrong within this token sequence:", tokens)
 			return nil
 		}
 		if len(tokens) > 1 {
-			/*	t := Tree{}
-				t.value = tokens[2]
-				t.left = FormTree(tokens[0:2])
-				t.right = FormTree(tokens[3:])
-				return &t
-			} else if len(tokens) == 2 {*/
+
 			t := Tree{}
 			t.value = tokens[0]
 			t.left = FormTree(tokens[1:])
@@ -139,7 +131,8 @@ func FormTree(tokens []Token) *Tree {
 
 }
 
-// PrintTree prints tree but it's not pretty
+// PrintTree prints tree recursively but it's not pretty.
+// This function is for debug purposes
 func PrintTree(t *Tree) {
 	fmt.Println(t.value)
 	if t.left != nil {
@@ -151,22 +144,3 @@ func PrintTree(t *Tree) {
 		PrintTree(t.right)
 	}
 }
-
-/*
-rules:
-colons(A): A=(A)
-imp(A,B): true if
-	A and B are true
-	A is false
-eq(A,B): true if
-	A and B are true
-	A and B are false
-and(A,B): true if
-	A and B are true
-or(A,B): true if
-	A and B are true
-	A is true
-	B is true
-neg(A): true if
-	A is false
-*/

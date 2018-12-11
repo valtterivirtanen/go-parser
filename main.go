@@ -7,23 +7,34 @@ import (
 	"strings"
 )
 
+// Variable(slice) for symbols that are allowed in proposition
 var allowedSymbols = []string{"p", "_", "1", "2", "3", "4", "5", "6", "7", "8", "9", "(", ")", "~", "∼", "&", "v", "-", ">", "<"}
 
 func main() {
-	//fmt.Println(allowedSymbols)
+	// Print homescreen, including instructions to parser
 	PrintStartScreen()
+	// Start scanner
 	scanner := bufio.NewScanner(os.Stdin)
+	// Declare variables
+	// Flag for program running
 	running := true
+	// Input read from user
 	var userInput string
-	var x bool
+	// Tokenized userInput, sequence(slice) of tokens
 	var input []Token
+	// True if input was correct
+	var x bool
+
+	// Start program loop
 	for running {
+		// Reset variables values
 		userInput = ""
 		x = false
 		input = []Token{}
 
 		fmt.Println("Please input proposition:")
 
+		// Read from stdin the proposition
 		for scanner.Scan() {
 			userInput = scanner.Text()
 			userInput = removeSpaces(userInput)
@@ -34,21 +45,19 @@ func main() {
 			fmt.Println("Invalid input. Please ref to instructions and provide another one")
 		}
 
+		// Handle scanner error
 		if err := scanner.Err(); err != nil {
 			fmt.Fprintln(os.Stderr, "reading standard input:", err)
 		}
 
-		//fmt.Printf("Input: %v\n", userInput)
-
+		// If userInput was valid, tokenize it
 		if x {
 			input = TokenizeInput(userInput)
-			//fmt.Println(input)
-
-			//fmt.Println(x)
 
 			fmt.Println("Would you like to test for tautology? (y/n)")
 
 			testForTautology := "false"
+			// Read input whether the user wants to know tautology or not
 			for scanner.Scan() {
 				testForTautology = scanner.Text()
 				if testForTautology == "y" || testForTautology == "n" {
@@ -62,10 +71,10 @@ func main() {
 				fmt.Fprintln(os.Stderr, "reading standard input:", err)
 			}
 
+			// Output results
 			if len(input) > 0 {
 				if testForTautology == "y" {
 					fmt.Println("Is tautology:", CheckTautology(input))
-					fmt.Println()
 				} else if testForTautology == "n" {
 					input = getPropositionVariables(input)
 					finalResult := ProcessInput(input)
@@ -80,6 +89,7 @@ func main() {
 			}
 		}
 
+		// Ask if user wants to give another proposition
 		fmt.Println("Would you like to keep going / try again? (y/n)")
 		for scanner.Scan() {
 			c := scanner.Text()
@@ -96,6 +106,7 @@ func main() {
 	fmt.Println("Have a nice day. See you soon!")
 }
 
+// Check that user input has only valid symbols in it
 func checkUserInput(input string) bool {
 	found := false
 	for _, b := range input {
@@ -119,10 +130,12 @@ func checkUserInput(input string) bool {
 	return true
 }
 
+// Remove all spaces
 func removeSpaces(s string) string {
 	return strings.Join(strings.Fields(s), "")
 }
 
+// Rewrite all values of certain proposition variable, with new value
 func replaceAll(old string, new string, all []Token) []Token {
 	if new == "t" || new == "true" {
 		new = "true"
@@ -140,8 +153,10 @@ func replaceAll(old string, new string, all []Token) []Token {
 	return all
 }
 
+// Rewrite all values of certain proposition variable, with new value.
+// The new value is read from user
 func getPropositionVariables(input []Token) []Token {
-	fmt.Println("Give truth value (false, true, f, t) for each terminal")
+	fmt.Println("Give truth value (false/true/f/t) for each terminal")
 	scanner := bufio.NewScanner(os.Stdin)
 	for i := range input {
 		if input[i].tokenType == "TERM" && string(input[i].value[0]) == "p" {
